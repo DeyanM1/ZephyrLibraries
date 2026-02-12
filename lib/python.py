@@ -28,13 +28,11 @@ def importHandler(names: list[str]):
 importHandler(["ZError", "ZCommand", "ActiveVars", "ZValue", "ZBool"])
 
 
-class python:
+class python(Base):
     def __init__(self, cmd: ZCommand, activeVars: ActiveVars) -> None:
-        
+        super.__init__()
         self.value = ZBool("~0")
         self.supportedVars = []
-
-        self.functionRegistry: dict[str, Callable[..., Any]] = {}
 
 
         self.registerFunc({self.run: ""})
@@ -56,25 +54,6 @@ class python:
         eval(command.value)
 
 
-
-
-
-
-    def registerFunc(self, funcList: dict[Callable[..., Any], str]) -> None:
-        """
-        Register a function for a type. Its added to the functionRegistry
-
-        Args:
-            func (Callable[..., Any]): The function to generate the docstring for.
-            name (Optional[str]): The name to use in the docstring. If not provided, the function's name will be used.
-
-        """
-        for func, name in funcList.items():
-            if name:
-                self.functionRegistry[name] = func
-            else:
-                self.functionRegistry[func.__name__] = func
- 
 
 def load() -> dict[str, type]:
     return {"": python}

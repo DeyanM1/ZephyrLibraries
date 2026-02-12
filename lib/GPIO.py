@@ -27,15 +27,14 @@ def importHandler(names: list[str]):
     for name in names:
         globals()[name] = getattr(base, name)
 
-importHandler(["ZError", "ZCommand", "ActiveVars", "ZValue", "ZBool"])
+importHandler(["ZError", "ZCommand", "ActiveVars", "ZValue", "ZBool", "Base"])
 
 
-class gpio:
+class gpio(Base):
     def __init__(self, cmd: ZCommand, activeVars: ActiveVars) -> None:
-        
+        super.__init__()
         self.value = ZBool("~0")
 
-        self.functionRegistry: dict[str, Callable[..., Any]] = {}
 
         if len(cmd.args) > 0 and cmd.args[0] != "":
             boardType: ZValue = ZValue()
@@ -108,20 +107,6 @@ class gpio:
     def onChange(self) -> str:
         return self.value.value
 
-    def registerFunc(self, funcList: dict[Callable[..., Any], str]) -> None:
-        """
-        Register a function for a type. Its added to the functionRegistry
-
-        Args:
-            func (Callable[..., Any]): The function to generate the docstring for.
-            name (Optional[str]): The name to use in the docstring. If not provided, the function's name will be used.
-
-        """
-        for func, name in funcList.items():
-            if name:
-                self.functionRegistry[name] = func
-            else:
-                self.functionRegistry[func.__name__] = func
  
 
 def load() -> dict[str, type]:

@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 
 
-# from base import ZError, ZCommand, ActiveVars, ZValue, ZBool    # <- for debugging. Use importHandler for final Project!
+# from base import ZError, ZCommand, ActiveVars, ZValue, Base    # <- for debugging. Use importHandler for final Project!
 
 
 def importHandler(names: list[str]):
@@ -28,14 +28,12 @@ def importHandler(names: list[str]):
     for name in names:
         globals()[name] = getattr(base, name)
 
-importHandler(["ZError", "ZCommand", "ActiveVars", "ZValue", "ZBool"])
+importHandler(["Base", "ZError", "ZCommand", "ActiveVars", "ZValue", "ZBool"])
 
 
-class system:
+class system(Base):
     def __init__(self, cmd: ZCommand, activeVars: ActiveVars) -> None:
-        
-
-        self.functionRegistry: dict[str, Callable[..., Any]] = {}
+        super().__init__()
                 
 
         self.registerFunc({self.quit: "", self.getCWD: ""})
@@ -62,20 +60,7 @@ class system:
 
         return activeVars
 
-    def registerFunc(self, funcList: dict[Callable[..., Any], str]) -> None:
-        """
-        Register a function for a type. Its added to the functionRegistry
-
-        Args:
-            func (Callable[..., Any]): The function to generate the docstring for.
-            name (Optional[str]): The name to use in the docstring. If not provided, the function's name will be used.
-
-        """
-        for func, name in funcList.items():
-            if name:
-                self.functionRegistry[name] = func
-            else:
-                self.functionRegistry[func.__name__] = func
+    
  
 
 def load() -> dict[str, type]:
