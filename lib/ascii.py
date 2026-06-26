@@ -61,7 +61,7 @@ class ASCII(Base):
         targetVarName.setValue(cmd.args[1], activeVars)
 
 
-        char = ord(charToConvert.value)
+        char = str(ord(charToConvert.value))
         targetVar = activeVars.get(targetVarName.value) 
         targetVar.value.value = char  # pyright: ignore[reportOptionalMemberAccess]
 
