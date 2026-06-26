@@ -31,7 +31,7 @@ importHandler(["ZCommand", "ActiveVars", "Base", "ZValue"])
 
 class ASCII(Base):
     def __init__(self, cmd: ZCommand, activeVars: ActiveVars) -> None:
-        super().__init__()
+        super().__init__(cmd, activeVars)
 
         self.registerFunc({self.ToAscii: "", self.ToNum: ""})
 
