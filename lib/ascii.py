@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 
-#from base import ZCommand, ActiveVars, Base, ZValue
+# from base import ZCommand, ActiveVars, Base, ZValue, ZError 
 
 
 def importHandler(names: list[str]):
@@ -25,7 +25,8 @@ def importHandler(names: list[str]):
     for name in names:
         globals()[name] = getattr(base, name)
 
-importHandler(["ZCommand", "ActiveVars", "Base", "ZValue"])
+importHandler(["ZCommand", "ActiveVars", "Base", "ZValue", "ZError"])
+
 
 
 
@@ -37,6 +38,7 @@ class ASCII(Base):
 
 
     def ToAscii(self, cmd: ZCommand, activeVars: ActiveVars):
+        cmd.checkArgs(2)
         valueToConvert = ZValue("0", "INT")
         targetVarName = ZValue("", "PT")
 
@@ -46,6 +48,9 @@ class ASCII(Base):
 
         char = chr(int(valueToConvert.value))
         targetVar = activeVars.get(targetVarName.value) 
+        if not targetVar:
+            raise ZError(113)
+            
         targetVar.value.value = char  # pyright: ignore[reportOptionalMemberAccess]
 
         activeVars.update({targetVarName.value: targetVar})
@@ -62,6 +67,9 @@ class ASCII(Base):
 
         char = str(ord(charToConvert.value))
         targetVar = activeVars.get(targetVarName.value) 
+        if not targetVar:
+            raise ZError(113)
+            
         targetVar.value.value = char  # pyright: ignore[reportOptionalMemberAccess]
 
         activeVars.update({targetVarName.value: targetVar})
