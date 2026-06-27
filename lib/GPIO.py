@@ -1,9 +1,8 @@
 from __future__ import annotations
-from typing import Any, Callable
 
 import FakeRPi.GPIO as GPIO # type: ignore
 
-# from base import ZError, ZCommand, ActiveVars, ZValue, ZBool    # <- for debugging. Use importHandler for final Project!
+# from base import ZError, ZCommand, ActiveVars, ZValue, Base    # <- for debugging. Use importHandler for final Project!
 
 
 def importHandler(names: list[str]):
@@ -27,85 +26,98 @@ def importHandler(names: list[str]):
     for name in names:
         globals()[name] = getattr(base, name)
 
-importHandler(["ZError", "ZCommand", "ActiveVars", "ZValue", "ZBool", "Base"])
+importHandler(["ZError", "ZCommand", "ActiveVars", "ZValue", "Base"])
 
 
 class gpio(Base):
     def __init__(self, cmd: ZCommand, activeVars: ActiveVars) -> None:
-        super.__init__()
-        self.value = ZBool("~0")
+        super().__init__(cmd, activeVars)
+        self.value = ZValue("~0", "BOOL") # Value of last read pin
 
 
-        if len(cmd.args) > 0 and cmd.args[0] != "":
-            boardType: ZValue = ZValue()
-            boardType.setValue(cmd.args[0], "PT", activeVars)
-            
-            match boardType.value:
-                case "BCM":
-                    GPIO.setmode(GPIO.BCM) # type: ignore
-                case "BOARD":
-                    GPIO.setmode(GPIO.BOARD) # type: ignore
-                case _:
-                    print("ERROR: wrong board Type. SUPPORTED: BCM/BOARD")
-                    quit()
-                
 
-        self.registerFunc({self.SETUP: "", self.SET: "", self.READ: "", self.CLEAN: ""})
+        self.firstTimeInit(cmd, activeVars)
 
+        self.registerFunc({self.SETUP: "", self.SET: "", self.READ: "", self.CLEAN: "", self.w: ""})
 
-    def SETUP(self, cmd: ZCommand, activeVars: ActiveVars) -> None:
-        if len(cmd.args) > 1 and cmd.args[1] != "" and cmd.args[0] != "":
-            pin: ZValue = ZValue()
-            pin.setValue(cmd.args[0], "INT", activeVars)
-            
-            pinType: ZValue = ZValue()
-            pinType.setValue(cmd.args[1], "PT", activeVars)
-
-            match pinType.value:
-                case "IN":
-                    GPIO.setup(int(pin.value), GPIO.IN) # type: ignore
-                case "OUT":
-                    GPIO.setup(int(pin.value), GPIO.OUT) # type: ignore
-                case _:
-                    raise ZError(114)
-        else:
-            raise ZError(114)
-    
-    def SET(self, cmd: ZCommand, activeVars: ActiveVars) -> None:
-        if len(cmd.args) > 0 and cmd.args[0] != "":
-            pin: ZValue = ZValue()
-            pin.setValue(cmd.args[0], "INT", activeVars)
-            
-            pinValue: ZBool = ZBool()
-            pinValue.setValue(cmd.args[1])
-
-            match pinValue.getBool():
-                case True:
-                    GPIO.output(int(pin.value), GPIO.HIGH) # type: ignore
-                case False:
-                    GPIO.output(int(pin.value), GPIO.LOW) # type: ignore
-
-    def READ(self, cmd: ZCommand, activeVars: ActiveVars):
-        pin: ZValue = ZValue()
-        pin.setValue(cmd.args[0], "INT", activeVars)
-
-
-        rawValue = GPIO.input(int(pin.value))# type: ignore
-
-        match rawValue:
-            case 1:
-                self.value.setValue("~1")
-            case 0:
-                self.value.setValue("~0")
-            case _: # type: ignore
-                pass
-
-    def CLEAN(self, cmd: ZCommand, activeVars: ActiveVars):
-        GPIO.cleanup() #  type: ignore
-
+        
+    def firstTimeInit(self, cmd: ZCommand, activeVars: ActiveVars):
+        self.w(cmd, activeVars)
 
     def onChange(self) -> str:
         return self.value.value
+        
+        
+    # --- Callable Functions
+     
+    def w(self, cmd: ZCommand, activeVars: ActiveVars):
+        cmd.checkArgs(1)
+        
+        boardType: ZValue = ZValue("", "PT")
+        boardType.setValue(cmd.args[0], activeVars)
+        
+        match boardType.value:
+            case "BCM":
+                GPIO.setmode(GPIO.BCM) # type: ignore
+            case "BOARD":
+                GPIO.setmode(GPIO.BOARD) # type: ignore
+            case _:
+                print("ERROR: unknown board Type. SUPPORTED: BCM/BOARD")
+                quit()
+
+    def SETUP(self, cmd: ZCommand, activeVars: ActiveVars) -> None:
+        cmd.checkArgs(2)
+        
+        pin: ZValue = ZValue("0",  "INT")
+        pin.setValue(cmd.args[0], activeVars)
+        
+        pinType: ZValue = ZValue("", "PT")
+        pinType.setValue(cmd.args[1], activeVars)
+
+        match pinType.value:
+            case "IN":
+                GPIO.setup(int(pin.value), GPIO.IN) # type: ignore
+            case "OUT":
+                GPIO.setup(int(pin.value), GPIO.OUT) # type: ignore
+            case _:
+                raise ZError(114)
+    
+    
+    def SET(self, cmd: ZCommand, activeVars: ActiveVars) -> None:
+        cmd.checkArgs(2)
+        
+        pin: ZValue = ZValue("0", "INT")
+        pin.setValue(cmd.args[0], activeVars)
+        
+        pinValue: ZValue = ZValue("~0", "BOOL")
+        pinValue.setValue(cmd.args[1], activeVars)
+
+        match pinValue.asPythonBOOL:
+            case True:
+                GPIO.output(int(pin.value), GPIO.HIGH) # type: ignore
+            case False:
+                GPIO.output(int(pin.value), GPIO.LOW) # type: ignore
+
+    def READ(self, cmd: ZCommand, activeVars: ActiveVars):
+        cmd.checkArgs(1)
+        
+        pin: ZValue = ZValue("0", "INT")
+        pin.setValue(cmd.args[0], activeVars)
+
+
+        rawValue = GPIO.input(int(pin.value))
+
+        match rawValue:
+            case 1:
+                self.value.setValue("~1", activeVars)
+            case 0:
+                self.value.setValue("~0", activeVars)
+            case _:
+                pass
+
+    def CLEAN(self, cmd: ZCommand, activeVars: ActiveVars):
+        GPIO.cleanup() 
+
 
  
 
