@@ -1,5 +1,4 @@
 from __future__ import annotations
-from typing import Any, Callable
 import sys
 from pathlib import Path
 
@@ -28,35 +27,44 @@ def importHandler(names: list[str]):
     for name in names:
         globals()[name] = getattr(base, name)
 
-importHandler(["Base", "ZError", "ZCommand", "ActiveVars", "ZValue", "ZBool"])
+importHandler(["Base", "ZError", "ZCommand", "ActiveVars", "ZValue"])
 
 
 class system(Base):
     def __init__(self, cmd: ZCommand, activeVars: ActiveVars) -> None:
-        super().__init__()
+        super().__init__(cmd, activeVars)
                 
 
         self.registerFunc({self.quit: "", self.getCWD: ""})
 
 
     def quit(self, cmd: ZCommand, activeVars: ActiveVars):
-        errorCode = ZValue("0")
+        errorCode = ZValue("0", "INT")
 
-        if cmd.args[0] != "":
-            errorCode.setValue(cmd.args[0], "INT", activeVars)
+        cmd.checkArgs(1)
+        errorCode.setValue(cmd.args[0], activeVars)
+
 
         sys.exit(int(errorCode.value))
 
     def getCWD(self, cmd:ZCommand, activeVars: ActiveVars) -> ActiveVars:
-        varName = ZValue()
+        varName = ZValue("", "PT")
 
-        if cmd.args[0] != "":
-            varName.setValue(cmd.args[0], "PT", activeVars)
+        cmd.checkArgs(1, True)
+        varName.setValue(cmd.args[0], activeVars)
         
         path = Path.cwd()
         path = path.absolute()
 
-        activeVars[varName.value].value.value = str(path)
+        var = activeVars.get(varName.value)
+        
+        if not var:
+            raise ZError(113)
+
+        var.value.setValue(str(path), activeVars)
+
+        activeVars.update({var.name: var})
+        
 
         return activeVars
 
