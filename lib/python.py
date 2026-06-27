@@ -1,7 +1,6 @@
 from __future__ import annotations
-from typing import Any, Callable
 
-# from base import ZError, ZCommand, ActiveVars, ZValue, ZBool    # <- for debugging. Use importHandler for final Project!
+# from base import ZCommand, ActiveVars, ZValue, Base    # <- for debugging. Use importHandler for final Project!
 
 
 def importHandler(names: list[str]):
@@ -25,29 +24,26 @@ def importHandler(names: list[str]):
     for name in names:
         globals()[name] = getattr(base, name)
 
-importHandler(["ZError", "ZCommand", "ActiveVars", "ZValue", "ZBool"])
+importHandler(["Base", "ZCommand", "ActiveVars", "ZValue"])
 
 
-class python(Base):
+class PYTHON(Base):
     def __init__(self, cmd: ZCommand, activeVars: ActiveVars) -> None:
-        super.__init__()
-        self.value = ZBool("~0")
+        super().__init__(cmd, activeVars)
         self.supportedVars = []
-
 
         self.registerFunc({self.run: ""})
 
     def run(self, cmd: ZCommand, activeVars: ActiveVars):
-        if len(cmd.args) < 0 or cmd.args[0] == "":
-            raise ZError(114)
+        cmd.checkArgs(1)
         
         rawCommand = cmd.args[0]
 
-        command = ZValue()
+        command = ZValue("", "PT")
         
         rawCommand.lstrip("(").rstrip(")")
         if rawCommand.startswith("'"):
-            command.setValue(rawCommand, "PT", activeVars)
+            command.setValue(rawCommand, activeVars)
         else:
             command.value = rawCommand
 
@@ -56,4 +52,4 @@ class python(Base):
 
 
 def load() -> dict[str, type]:
-    return {"": python}
+    return {"": PYTHON}
