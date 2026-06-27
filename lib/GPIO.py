@@ -29,10 +29,11 @@ def importHandler(names: list[str]):
 importHandler(["ZError", "ZCommand", "ActiveVars", "ZValue", "Base"])
 
 
-class gpio(Base):
+class GPIO(Base):
     def __init__(self, cmd: ZCommand, activeVars: ActiveVars) -> None:
         super().__init__(cmd, activeVars)
         self.value = ZValue("~0", "BOOL") # Value of last read pin
+        self.supportedVars = ["INT", "PT", "FLOAT", "BOOL"]
 
 
 
@@ -122,4 +123,4 @@ class gpio(Base):
  
 
 def load() -> dict[str, type]:
-    return {"": gpio}
+    return {"": GPIO}

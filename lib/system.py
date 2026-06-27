@@ -30,7 +30,7 @@ def importHandler(names: list[str]):
 importHandler(["Base", "ZError", "ZCommand", "ActiveVars", "ZValue"])
 
 
-class system(Base):
+class SYSTEM(Base):
     def __init__(self, cmd: ZCommand, activeVars: ActiveVars) -> None:
         super().__init__(cmd, activeVars)
                 
@@ -72,4 +72,4 @@ class system(Base):
  
 
 def load() -> dict[str, type]:
-    return {"": system}
+    return {"": SYSTEM}
